@@ -89,7 +89,7 @@ def random_optimize(domain, cost_func)
   best = 999999999
   bestr = nil
 
-  (0...10000).each do |i|
+  (0...1000).each do |i|
     r = []
     domain.each { |dm| r << Random.rand(dm)}
     cost = self.send(cost_func, r)
@@ -107,4 +107,38 @@ domain = []
 (@people.length * 2).times { domain << (0..9) }
 s = random_optimize(domain, "schedule_cost")
 puts "best cost by random: #{schedule_cost(s)}"
+print_schedule(s)
+
+def hillclimb(domain, cost_func)
+  sol = []
+  domain.each { |dm| sol << Random.rand(dm) }
+
+  loop do
+    neighbors = []
+
+    domain.length.times do |i|
+      neighbors << sol[0...i] + [sol[i] - 1] + sol[i+1..-1] if sol[i] > domain[i].first
+      neighbors << sol[0...i] + [sol[i] + 1] + sol[i+1..-1] if sol[i] < domain[i].last
+    end
+
+    current = self.send(cost_func, sol)
+    best = current
+
+    neighbors.each do |nb|
+      cost = self.send(cost_func, nb)
+
+      if cost < best
+        best = cost
+        sol = nb
+      end
+    end
+
+    break if best == current
+  end
+
+  sol
+end
+
+s = hillclimb(domain, "schedule_cost")
+puts "best cost by hillclimb: #{schedule_cost(s)}"
 print_schedule(s)
