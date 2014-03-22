@@ -84,3 +84,27 @@ def schedule_cost(sol)
 end
 
 puts "cost: #{schedule_cost(s)}"
+
+def random_optimize(domain, cost_func)
+  best = 999999999
+  bestr = nil
+
+  (0...10000).each do |i|
+    r = []
+    domain.each { |dm| r << Random.rand(dm)}
+    cost = self.send(cost_func, r)
+
+    if cost < best
+      best = cost
+      bestr = r
+    end
+  end
+
+  bestr
+end
+
+domain = []
+(@people.length * 2).times { domain << (0..9) }
+s = random_optimize(domain, "schedule_cost")
+puts "best cost by random: #{schedule_cost(s)}"
+print_schedule(s)
