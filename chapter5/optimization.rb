@@ -174,3 +174,64 @@ end
 s = annealing_optimize(domain, "schedule_cost")
 puts "best cost by annealing: #{schedule_cost(s)}"
 print_schedule(s)
+
+def mutate(domain, step, vec)
+  i = Random.rand(0...domain.length)
+
+  if (Random.rand < 0.5) && (vec[i] > domain[i].first)
+    vec[0...i] + [vec[i] - step] + vec[i+1..-1]
+  elsif vec[i] < domain[i].last
+    vec[0...i] + [vec[i] + step] + vec[i+1..-1]
+  end
+end
+
+def crossover(domain, r1, r2)
+  i = Random.rand(1...domain.length-1)
+  r1[0...i] + r2[i..-1]
+end
+
+def genetic_optimize(domain, cost_func,
+                     pop_size = 50, step = 1, mut_prob = 0.2, elite = 0.2, maxiter = 100)
+  pop = []
+
+  pop_size.times do
+    vec = []
+    domain.each { |dm| vec << Random.rand(dm) }
+    pop << vec
+  end
+
+  top_elite = (elite * pop_size).to_i
+  scores = []
+
+  maxiter.times do
+    scores = []
+
+    pop.each do |pp|
+      next unless pp
+      scores << [self.send(cost_func, pp), pp]
+    end
+
+    scores.sort_by! { |sc| sc[0] }
+    ranked = []
+    scores.each { |sc| ranked << sc[1] }
+
+    pop = ranked[0...top_elite]
+
+    while pop.length < pop_size
+      if Random.rand < mut_prob
+        c = Random.rand(0..top_elite)
+        pop << mutate(domain, step, ranked[c])
+      else
+        c1 = Random.rand(0..top_elite)
+        c2 = Random.rand(0..top_elite)
+        pop << crossover(domain, ranked[c1], ranked[c2])
+      end
+    end
+  end
+
+  scores[0][1]
+end
+
+s = genetic_optimize(domain, "schedule_cost")
+puts "best cost by genetic: #{schedule_cost(s)}"
+print_schedule(s)
