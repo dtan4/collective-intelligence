@@ -142,3 +142,35 @@ end
 s = hillclimb(domain, "schedule_cost")
 puts "best cost by hillclimb: #{schedule_cost(s)}"
 print_schedule(s)
+
+def annealing_optimize(domain, cost_func, t = 10000.0, cool = 0.95, step = 1)
+  vec = []
+  domain.each { |dm| vec << Random.rand(dm).to_f }
+
+  while t > 0.1
+    i = Random.rand(0...domain.length)
+    direction = Random.rand(-step..step)
+    vecb = vec[0..-1]
+    vecb[i] += direction
+
+    if vecb[i] < domain[i].first
+      vecb[i] = domain[i].first
+    elsif vecb[i] > domain[i].last
+      vecb[i] = domain[i].last
+    end
+
+    ea = self.send(cost_func, vec)
+    eb = self.send(cost_func, vecb)
+    prob = Math::E**(-1.0 * (eb - ea).abs / t)
+
+    vec = vecb if (eb < ea) || (Random.rand < prob)
+
+    t *= cool
+  end
+
+  return vec
+end
+
+s = annealing_optimize(domain, "schedule_cost")
+puts "best cost by annealing: #{schedule_cost(s)}"
+print_schedule(s)
