@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require "./optimization.rb"
+
 @dorms = %w{Zeus Athena Hercules Bacchus Pluto}
 @prefs = [
           { name: "Toby", pref: %w{Bacchus Hercules} },
@@ -31,3 +33,34 @@ def print_solution(vec)
 end
 
 print_solution([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+def dorm_cost(vec)
+  cost = 0
+  slots = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4]
+
+  vec.each_with_index do |v, i|
+    x = v.to_i
+    dorm = @dorms[slots[x]]
+    pref = @prefs[i][:pref]
+
+    if pref[0] == dorm
+      cost += 0
+    elsif pref[1] == dorm
+      cost += 1
+    else
+      cost += 3
+    end
+
+    slots.delete_at(x)
+  end
+
+  cost
+end
+
+s = random_optimize(@domain, "dorm_cost")
+puts dorm_cost(s)
+print_solution(s)
+
+s = genetic_optimize(@domain, "dorm_cost")
+puts dorm_cost(s)
+print_solution(s)
